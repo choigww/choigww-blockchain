@@ -40,6 +40,7 @@ class P2pServer {
     listen() {
         // statically used!
         const server = new Websocket.Server({ port: P2P_PORT });
+        
         // Now that we have the server created
         // Let's also set up an event listener through a function on the sever object called 'on'
         //   1. listen for incoming types of messages
@@ -50,15 +51,62 @@ class P2pServer {
         // which as its parameter is the one socket object that is created as the result of this connection.
         server.on('connection', socket => this.connectSocket(socket));
         // connectSocket --> pushing the socket to our array of sockets
-        console.log(`Listening for peer-to-peer connections on: %{P2P_PORT}`);
+        console.log(`Listening for peer-to-peer connections on: ${P2P_PORT}`);
+
+        // This function will handle later instances of the application
+        // connecting to peers that are specified when they're started.
+        // so call this.connectToPeers within the server.on 
+        // and console.log of the listening function
+        this.connectToPeers();
+    }
+
+    // Each of the peers within this peers constant array that we have at the top
+    // 
+
+    connectToPeers() {
+        peers.forEach(peer => {
+          const socket = new Websocket(peer);
+          socket.on('open', () => this.connectSocket(socket));
+        });
+      }
+
+    connectToPeers() {
+        peers.forEach(peer => {
+            // address of peer example! (peer lookes like this.)
+            // ws://localhost:5001 
+            // with the address, we can make a new web socket moudle
+            // rather object by using the web socket class at the top
+            // and then passing in that peer address into the constructor
+            const socket = new Websocket(peer); // this creates a socket object 
+
+            // once we have this socket, open another event listerner
+            // for the open event for 'this'.
+            // because we need to specify our peers for the application.
+            
+            // by doing socket.on open we can run some code
+            // if that server is started later.
+            socket.on('open', () => this.connectSocket(socket));
+        });
     }
 
     connectSocket(socket) {
         this.sockets.push(socket);
         console.log('Socket connected');
+
+        this.messageHandler(socket);
+
+        socket.send(JSON.stringify(this.blockchain.chain));
+    }
+
+    messageHandler(socket) {
+        socket.on('message', message => {
+            // transform into javascript object
+            const data = JSON.parse(message);
+            console.log('data', data);
+        });
     };
 }
 
 
-
+module.exports = P2pServer;
 

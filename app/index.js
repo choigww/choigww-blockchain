@@ -21,6 +21,7 @@ const bodyParser = require('body-parser');
 
 // the code below will get the index.js file by default
 const Blockchain = require('../blockchain');
+const P2pServer = require('./p2p-server');
 
 // HTTP_PORT=3002 npm run dev
 // To pass the environment variable that is passed to the application
@@ -30,6 +31,7 @@ const HTTP_PORT = process.env.HTTP_PORT || 3001;
 // app created from express provides a lot of functionality for us
 const app = express();
 const bc = new Blockchain();
+const p2pServer = new P2pServer(bc);
 
 // To use the body-parser, json middleware function
 // the below code allows us to receive json within post class
@@ -64,3 +66,5 @@ app.get('/blocks', (req, res) => {
 app.listen(HTTP_PORT, () => console.log(`Listening on port ${HTTP_PORT}`));
 
 
+// start the web socket server in this blockchain application instance
+p2pServer.listen();
